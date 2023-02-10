@@ -1,5 +1,5 @@
 # [steps to reproduce:](https://reangdblog.blogspot.com/2016/05/chrome-docker.html)
-Dockerfile
+## Dockerfile
 ```Dockerfile
 FROM 127.0.0.1:1027/arpa/ip6/c/f/ubuntu
 
@@ -9,7 +9,8 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && \
   apt-get install -y --no-install-recommends dbus-x11 libexif12 && \
-    chmod +x /bin/run_chrome && \
+  chmod +x /bin/run_chrome && \
+  apt-get update && apt-get install -y gnupg && \
   apt-key add /tmp/linux_signing_key.pub && \
   echo 'deb http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list && \
   apt-get update && \
@@ -20,7 +21,7 @@ RUN apt-get update && \
 
 CMD /bin/run_chrome
 ```
-run_chrome
+## run_chrome
 ```bash
 #!/bin/bash
 
@@ -38,7 +39,8 @@ fi
 
 su - docker -c google-chrome
 ```
-chrome.sh
+```docker build -t chrome .```
+## chrome.sh
 ```sh
 #!/bin/bash
 
@@ -48,11 +50,9 @@ then
 docker run -d \
   --name=chrome \
   --cap-add=SYS_ADMIN \ 
-```
-```sh
-  --security-opt seccomp:unconfined \
-```
-```sh
+#
+--security-opt seccomp:unconfined \
+#
   --net=host \
   --env="DISPLAY" \
   --env="HOST_UID=$(id -u)" \
@@ -75,7 +75,15 @@ else
   docker start chrome
 fi
 ```
-docker build -t chrome .
+```chmod +x chrome.sh && ./chrome.sh```
+### выполнив всё это имеем неработающий контейнер:
+- команда ```./chrome.sh```  создаёт контейнер с ошибкой: Error response from daemon: error gathering device information while adding custom device "/dev/snd": no such file or directory
+Error: failed to start containers: chrome
+### создаём недостающую папку:
+- - команда ```./chrome.sh``` создаёт контейнер с ошибкой: docker: Error response from daemon: error gathering device information while adding custom device "/dev/snd": not a device node.
+- - Повторная команда ```./chrome.sh``` возвращает
+Error response from daemon: error gathering device information while adding custom device "/dev/snd": not a device node
+Error: failed to start containers: chrome
+## вывод
+для данной инструкции, гостевой дистрибутив alpine не годится. Без попыток установки звуковых драйверов в alpine linux, пробуем дистрибутив ubuntu
 
-Failed 
-busted
